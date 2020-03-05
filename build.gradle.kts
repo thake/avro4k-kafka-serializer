@@ -7,11 +7,15 @@ plugins {
     `java-library`
     idea
     `maven-publish`
+    signing
+    id("org.jetbrains.dokka") version "0.10.1"
+    id("net.researchgate.release") version "2.6.0"
 }
 
 repositories {
     mavenCentral()
     mavenLocal()
+    jcenter()
 }
 
 dependencies{
@@ -31,13 +35,19 @@ dependencies{
     testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
 
 }
-publishing{
-    publications{
-        create<MavenPublication>("mavenJava"){
-            from(components["java"])
-            artifact(tasks["kotlinSourcesJar"])
-        }
-    }
+// Configure existing Dokka task to output HTML to typical Javadoc directory
+tasks.dokka {
+    outputFormat = "html"
+    outputDirectory = "$buildDir/javadoc"
+}
+
+// Create dokka Jar task from dokka task output
+val dokkaJar by tasks.creating(Jar::class) {
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = "Assembles Kotlin docs with Dokka"
+    classifier = "javadoc"
+    // dependsOn(tasks.dokka) not needed; dependency automatically inferred by from(tasks.dokka)
+    from(tasks.dokka)
 }
 tasks {
     compileKotlin {
@@ -58,8 +68,71 @@ tasks {
             isDownloadJavadoc = false
         }
     }
-    kotlinSourcesJar{
-        archiveClassifier.set("sources")
-        from(sourceSets.main.get().allSource)
+
+
+}
+
+// Create sources Jar from main kotlin sources
+val sourcesJar by tasks.creating(Jar::class) {
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = "Assembles sources JAR"
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
+}
+publishing{
+    repositories{
+        maven{
+            name = "mavenCentral"
+            url = if (project.isSnapshot) {
+                uri("https://oss.sonatype.org/content/repositories/snapshots/")
+            } else {
+                uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+            }
+            credentials {
+                username = project.findProperty("ossrhUsername") as? String
+                password = project.findProperty("ossrhPassword") as? String
+            }
+        }
+    }
+    publications{
+        create<MavenPublication>("mavenJava"){
+            from(components["java"])
+            artifact(sourcesJar)
+            artifact(dokkaJar)
+            //artifact(javadocJar.get())
+            pom{
+                name.set("Kafka serializer using avro4k")
+                description.set("Provides Kafka SerDes and Serializer / Deserializer implementations for avro4k")
+                url.set("https://github.com/thake/kafka-avro4k-serializer")
+                developers {
+                    developer {
+                        name.set("Thorsten Hake")
+                        email.set("mail@thorsten-hake.com")
+                    }
+                }
+                scm {
+                    connection.set("https://github.com/thake/kafka-avro4k-serializer.git")
+                    developerConnection.set("scm:git:ssh://github.com:thake/kafka-avro4k-serializer.git")
+                    url.set("https://github.com/tbroyer/gradle-incap-helper")
+                }
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+            }
+        }
     }
 }
+signing {
+    useGpgCmd()
+    isRequired = !isSnapshot
+    sign(publishing.publications["mavenJava"])
+}
+tasks.named("afterReleaseBuild") {
+    dependsOn("publishMavenJavaPublicationToMavenCentralRepository")
+}
+
+inline val Project.isSnapshot
+    get() = version.toString().endsWith("-SNAPSHOT")
