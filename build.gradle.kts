@@ -1,5 +1,4 @@
 group = "com.github.thake.avro4k"
-version = "0.2.0-SNAPSHOT"
 
 plugins {
     kotlin("jvm") version "1.3.61"
@@ -129,6 +128,10 @@ signing {
     useGpgCmd()
     isRequired = !isSnapshot
     sign(publishing.publications["mavenJava"])
+}
+release {
+    failOnCommitNeeded = false
+    failOnUnversionedFiles = false
 }
 tasks.named("afterReleaseBuild") {
     dependsOn("publish")
