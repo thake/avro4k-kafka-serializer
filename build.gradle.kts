@@ -24,7 +24,7 @@ dependencies{
     implementation("org.apache.avro:avro:${avroVersion}")
     implementation("io.confluent:kafka-avro-serializer:${confluentVersion}")
     implementation("io.confluent:kafka-streams-avro-serde:5.3.0")
-    implementation("com.sksamuel.avro4k:avro4k-core:0.22.0")
+    implementation("com.sksamuel.avro4k:avro4k-core:0.23.0")
     implementation("org.reflections:reflections:0.9.12")
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib-jdk8"))
