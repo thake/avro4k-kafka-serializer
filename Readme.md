@@ -6,7 +6,7 @@ As such, this implementations can be used to in several projects (i.e. spring)
 
 ## Example configuration
 
-###Spring Cloud Stream with Kafka
+### Spring Cloud Stream with Kafka
 
 ```javascript
 spring:
@@ -40,7 +40,7 @@ spring:
                             valueSerde: com.github.thake.kafka.avro4k.serializer.Avro4kSerde
 ...
 ```
-###Maven
+### Maven
 ```xml
 <dependency>
     <groupId>com.github.thake.avro4k</groupId>
