@@ -129,10 +129,6 @@ signing {
     isRequired = !isSnapshot
     sign(publishing.publications["mavenJava"])
 }
-release {
-    failOnCommitNeeded = false
-    failOnUnversionedFiles = false
-}
 tasks.named("afterReleaseBuild") {
     dependsOn("publish")
 }
