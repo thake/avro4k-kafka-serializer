@@ -1,21 +1,15 @@
 package com.github.thake.kafka.avro4k.serializer
 
 import com.nhaarman.mockitokotlin2.*
-import com.sksamuel.avro4k.AvroAlias
 import com.sksamuel.avro4k.AvroName
 import com.sksamuel.avro4k.AvroNamespace
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig
-import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
-
-import org.jetbrains.annotations.TestOnly
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
@@ -73,17 +67,21 @@ class KafkaAvro4kSerializerTest {
     fun testRecordSerDeRoundtrip(toSerialize : Any?){
         val serializer = KafkaAvro4kSerializer(registryMock)
         val topic = "My-Topic"
-        val result = serializer.serialize(topic,toSerialize)
+        val result = serializer.serialize(topic, toSerialize)
         assertNotNull(result)
         result ?: throw Exception("")
-        verify(registryMock).getId(eq("$topic-value"),any() )
-        verify(registryMock, never()).register(any(),any())
+        verify(registryMock).getId(eq("$topic-value"), any())
+        verify(registryMock, never()).register(any(), any())
 
-        val deserializer = KafkaAvro4kDeserializer(registryMock,
-            mapOf(KafkaAvro4kDeserializerConfig.RECORD_PACKAGES to this::class.java.`package`.name,
-                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to ""))
+        val deserializer = KafkaAvro4kDeserializer(
+            registryMock,
+            mapOf(
+                KafkaAvro4kDeserializerConfig.RECORD_PACKAGES to this::class.java.`package`.name,
+                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to "mock://registry"
+            )
+        )
 
-        val deserializedValue = deserializer.deserialize(topic,result)
-        assertEquals(toSerialize,deserializedValue)
+        val deserializedValue = deserializer.deserialize(topic, result)
+        assertEquals(toSerialize, deserializedValue)
     }
 }

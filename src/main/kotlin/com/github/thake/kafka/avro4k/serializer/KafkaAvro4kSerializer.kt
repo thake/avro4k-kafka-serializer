@@ -11,8 +11,9 @@ class KafkaAvro4kSerializer(
     private var isKey = false
 
     init {
-        this.schemaRegistry = client
         props?.let { configure(this.serializerConfig(it)) }
+        //Set the registry client explicitly after configuration has been applied to override client from configuration
+        if (client != null) this.schemaRegistry = client
     }
 
     override fun configure(configs: Map<String, *>, isKey: Boolean) {

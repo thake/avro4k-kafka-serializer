@@ -10,13 +10,13 @@ class KafkaAvro4kDeserializer(
 )  : AbstractKafkaAvro4kDeserializer(), Deserializer<Any> {
     private var isKey = false
     init {
-        this.schemaRegistry = client
         props?.let { configure(this.deserializerConfig(it)) }
+        //Set the registry client explicitly after the configuration has been applied to override client from configuration
+        if (client != null) this.schemaRegistry = client
     }
 
     override fun configure(configs: Map<String, *>, isKey: Boolean) {
         this.isKey = isKey
-
         this.configure(KafkaAvro4kDeserializerConfig(configs))
     }
 

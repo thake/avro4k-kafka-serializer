@@ -11,32 +11,36 @@ import org.apache.avro.Schema
 import org.apache.avro.specific.SpecificData
 import org.apache.kafka.common.errors.SerializationException
 import org.reflections.Reflections
-import org.reflections.scanners.Scanner
 import org.reflections.scanners.SubTypesScanner
 import org.reflections.scanners.TypeAnnotationsScanner
-import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import java.io.IOException
 import java.nio.ByteBuffer
+
 @ImplicitReflectionSerializer
 abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
-    private lateinit var recordPackages : List<String>
+    private var recordPackages: List<String>? = null
     //A map of alternative names for types that are annotated with Avro annotations
 
-    private val recordNameToType : Map<String, Class<*>> by lazy{
-        if (recordPackages.isNotEmpty()) {
-            var configBuilder = ConfigurationBuilder().
-                    addScanners(TypeAnnotationsScanner(), SubTypesScanner()).
-                    forPackages(*this.recordPackages.toTypedArray())
+    private val recordNameToType: Map<String, Class<*>> by lazy {
+        val currentPackages = recordPackages ?: throw IllegalStateException(
+            "Couldn't find record by schema name. " +
+                    "Tried to loookup types with @AvroName, @AvroNamespace and @AvroAliases annotations but either config parameter" +
+                    "'${KafkaAvro4kDeserializerConfig.RECORD_PACKAGES}' has not been set, or config has not been called."
+        )
+        if (currentPackages.isNotEmpty()) {
+            val configBuilder = ConfigurationBuilder().addScanners(TypeAnnotationsScanner(), SubTypesScanner())
+                    .forPackages(*currentPackages.toTypedArray())
 
             val reflection = Reflections(configBuilder)
             val avroTypes = HashSet<Class<*>>().apply {
-                this.addAll(reflection.getTypesAnnotatedWith(AvroName::class.java,true))
-                this.addAll(reflection.getTypesAnnotatedWith(AvroNamespace::class.java,true))
-                this.addAll(reflection.getTypesAnnotatedWith(AvroAlias::class.java,true))
+                this.addAll(reflection.getTypesAnnotatedWith(AvroName::class.java, true))
+                this.addAll(reflection.getTypesAnnotatedWith(AvroNamespace::class.java, true))
+                this.addAll(reflection.getTypesAnnotatedWith(AvroAlias::class.java, true))
+                this.addAll(reflection.getTypesAnnotatedWith(AvroAliases::class.java, true))
             }
             avroTypes.flatMap { type ->
-                getTypeNames(type).map { Pair(it,type) }
+                getTypeNames(type).map { Pair(it, type) }
             }.toMap()
         }else{
             emptyMap()
@@ -63,7 +67,11 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
         }
     }
     protected fun configure(config: KafkaAvro4kDeserializerConfig) {
-        recordPackages = config.getRecordPackages()
+        val configuredPackages = config.getRecordPackages()
+        if (configuredPackages.isEmpty()) {
+            throw IllegalArgumentException("${KafkaAvro4kDeserializerConfig.RECORD_PACKAGES} is not set correctly.")
+        }
+        recordPackages = configuredPackages
         configureClientProperties(config)
     }
 
@@ -85,6 +93,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
     protected fun deserialize(
         payload: ByteArray?
     ): Any? {
+
         return if (payload == null) {
             null
         } else {
@@ -92,7 +101,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
             try {
                 val buffer = getByteBuffer(payload)
                 id = buffer.int
-                var schema = schemaRegistry.getById(id)
+                val schema = schemaRegistry.getById(id)
                 val length = buffer.limit() - 1 - 4
                 val bytes = ByteArray(length)
                 buffer[bytes, 0, length]
@@ -117,8 +126,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
 
 
     protected open fun getSerializer(msgSchema: Schema): KSerializer<*> {
-        Avro
-        var objectClass = SpecificData.get().getClass(msgSchema);
+        var objectClass = SpecificData.get().getClass(msgSchema)
         if(objectClass == null){
            objectClass = recordNameToType[msgSchema.fullName] ?: throw SerializationException("Couldn't find matching class for record type ${msgSchema.fullName}. Full schema: $msgSchema")
         }

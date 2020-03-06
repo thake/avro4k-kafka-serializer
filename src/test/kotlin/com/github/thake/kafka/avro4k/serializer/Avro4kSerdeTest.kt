@@ -38,7 +38,7 @@ class Avro4kSerdeTest {
         val intValue : Int
     )
     @Serializable
-    @AvroNamespace("custom.namespace")
+    @AvroNamespace("custom.namespace.serde")
     private data class TestRecordWithNamespace(
         val float : Float
     )
@@ -60,21 +60,24 @@ class Avro4kSerdeTest {
             )
         }
     }
+
     @ImplicitReflectionSerializer
     @ParameterizedTest()
     @MethodSource("createSerializableObjects")
-    fun testRecordSerDeRoundtrip(toSerialize : Any){
-        val serde = Avro4kSerde<Any>(registryMock)
+    fun testRecordSerDeRoundtrip(toSerialize: Any) {
+        val config = mapOf(
+            KafkaAvro4kDeserializerConfig.RECORD_PACKAGES to this::class.java.packageName,
+            AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to "mock://registry"
+        )
+        val serde = Avro4kSerde<Any>()
         val topic = "My-Topic"
-        val result = serde.serializer().serialize(topic,toSerialize)
+        serde.configure(config, false)
+        val result = serde.serializer().serialize(topic, toSerialize)
+
         Assertions.assertNotNull(result)
         result ?: throw Exception("")
-        verify(registryMock).getId(eq("$topic-value"), any() )
-        verify(registryMock, never()).register(any(), any())
 
-        val deserializer = serde.deserializer()
-
-        val deserializedValue = deserializer.deserialize(topic,result)
+        val deserializedValue = serde.deserializer().deserialize(topic, result)
         Assertions.assertEquals(toSerialize, deserializedValue)
     }
 }
