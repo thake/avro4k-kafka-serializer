@@ -1,5 +1,5 @@
 group = "com.github.thake.avro4k"
-version = "0.1.0-SNAPSHOT"
+version = "0.2.0-SNAPSHOT"
 
 plugins {
     kotlin("jvm") version "1.3.61"
@@ -45,7 +45,7 @@ tasks.dokka {
 val dokkaJar by tasks.creating(Jar::class) {
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     description = "Assembles Kotlin docs with Dokka"
-    classifier = "javadoc"
+    archiveClassifier.set("javadoc")
     // dependsOn(tasks.dokka) not needed; dependency automatically inferred by from(tasks.dokka)
     from(tasks.dokka)
 }
@@ -131,7 +131,7 @@ signing {
     sign(publishing.publications["mavenJava"])
 }
 tasks.named("afterReleaseBuild") {
-    dependsOn("publishMavenJavaPublicationToMavenCentralRepository")
+    dependsOn("publish")
 }
 
 inline val Project.isSnapshot
