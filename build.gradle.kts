@@ -1,8 +1,8 @@
 group = "com.github.thake.avro4k"
 
 plugins {
-    kotlin("jvm") version "1.3.61"
-    kotlin("plugin.serialization") version "1.3.61"
+    kotlin("jvm") version "1.3.71"
+    kotlin("plugin.serialization") version "1.3.71"
     `java-library`
     idea
     `maven-publish`
@@ -19,12 +19,12 @@ repositories {
 
 dependencies{
     val confluentVersion by extra("5.3.2")
-    val avroVersion by extra("1.9.1")
+    val avroVersion by extra("1.9.2")
     val junitVersion by extra("5.1.0")
     implementation("org.apache.avro:avro:${avroVersion}")
     implementation("io.confluent:kafka-avro-serializer:${confluentVersion}")
     implementation("io.confluent:kafka-streams-avro-serde:5.3.0")
-    implementation("com.sksamuel.avro4k:avro4k-core:0.23.0")
+    implementation("com.sksamuel.avro4k:avro4k-core:0.30.0")
     implementation("org.reflections:reflections:0.9.12")
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib-jdk8"))
