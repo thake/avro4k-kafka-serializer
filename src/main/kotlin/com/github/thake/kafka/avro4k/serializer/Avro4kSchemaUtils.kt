@@ -1,14 +1,14 @@
-
 package com.github.thake.kafka.avro4k.serializer
 
 import com.sksamuel.avro4k.Avro
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
-import org.apache.avro.generic.GenericContainer
-import java.util.*
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSuperclassOf
 
-object Avro4kSchemaUtils {
+@ImplicitReflectionSerializer
+class Avro4kSchemaUtils {
 
     private val parser = Schema.Parser()
     private val NULL_SCHEMA = createPrimitiveSchema("null")
@@ -19,27 +19,32 @@ object Avro4kSchemaUtils {
     private val DOUBLE_SCHEMA = createPrimitiveSchema("double")
     private val STRING_SCHEMA = createPrimitiveSchema("string")
     private val BYTES_SCHEMA = createPrimitiveSchema("bytes")
+    private val cachedSchemas = mutableMapOf<KClass<*>, Schema>()
     private fun createPrimitiveSchema(type: String): Schema {
-        return parser.parse("""
+        return parser.parse(
+            """
             {"type" : "$type"}
-            """.trim())
+            """.trim()
+        )
     }
 
 
-
-    @ImplicitReflectionSerializer
-    fun getSchema(obj: Any?): Schema? {
-        return when (obj) {
-            null -> NULL_SCHEMA
-            is Boolean -> BOOLEAN_SCHEMA
-            is Int -> INTEGER_SCHEMA
-            is Long -> LONG_SCHEMA
-            is Float -> FLOAT_SCHEMA
-            is Double -> DOUBLE_SCHEMA
-            is CharSequence -> STRING_SCHEMA
-            is ByteArray -> BYTES_SCHEMA
-            else -> Avro.default.schema(obj::class.serializer())
+    fun getSchema(clazz: KClass<*>): Schema? {
+        return when {
+            Boolean::class.isSuperclassOf(clazz) -> BOOLEAN_SCHEMA
+            Int::class.isSuperclassOf(clazz) -> INTEGER_SCHEMA
+            Long::class.isSuperclassOf(clazz) -> LONG_SCHEMA
+            Float::class.isSuperclassOf(clazz) -> FLOAT_SCHEMA
+            Double::class.isSuperclassOf(clazz) -> DOUBLE_SCHEMA
+            CharSequence::class.isSuperclassOf(clazz) -> STRING_SCHEMA
+            ByteArray::class.isSuperclassOf(clazz) -> BYTES_SCHEMA
+            else -> cachedSchemas.computeIfAbsent(clazz) { Avro.default.schema(it.serializer()) }
         }
+    }
+
+
+    fun getSchema(obj: Any?): Schema? {
+        return if (obj == null) NULL_SCHEMA else getSchema(obj::class)
     }
 
 }

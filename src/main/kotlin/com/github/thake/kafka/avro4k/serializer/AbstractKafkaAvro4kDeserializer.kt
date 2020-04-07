@@ -5,7 +5,6 @@ import com.sksamuel.avro4k.io.AvroFormat
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDe
 import kotlinx.serialization.ImplicitReflectionSerializer
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 import org.apache.avro.specific.SpecificData
@@ -17,11 +16,13 @@ import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import java.io.IOException
 import java.nio.ByteBuffer
+import kotlin.reflect.KClass
 
 @ImplicitReflectionSerializer
 abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
     private var specificLookupForClassLoader: MutableMap<ClassLoader, Lookup> = mutableMapOf()
     private var recordPackages: List<String>? = null
+    protected val avroSchemaUtils = Avro4kSchemaUtils()
 
     inner class Lookup(private val classLoader: ClassLoader) {
         private val specificData = SpecificData(classLoader)
@@ -140,16 +141,17 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
 
             }
             else -> {
-                val reader = getSerializer(schema)
-                Avro.default.openInputStream(reader) {
+                val deserializedClass = getDeserializedClass(schema)
+                Avro.default.openInputStream(deserializedClass.serializer()) {
                     format = AvroFormat.BinaryFormat
                     writerSchema = schema
+                    readerSchema = avroSchemaUtils.getSchema(deserializedClass)
                 }.from(bytes).nextOrThrow()
             }
         }
 
 
-    protected open fun getSerializer(msgSchema: Schema): KSerializer<*> {
+    protected open fun getDeserializedClass(msgSchema: Schema): KClass<*> {
         //First lookup using the context class loader
         val contextClassLoader = Thread.currentThread().contextClassLoader
         var objectClass: Class<*>? = null
@@ -162,7 +164,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
                 ?: throw SerializationException("Couldn't find matching class for record type ${msgSchema.fullName}. Full schema: $msgSchema")
         }
 
-        return objectClass.kotlin.serializer()
+        return objectClass.kotlin
     }
 
     private fun getLookup(classLoader: ClassLoader) =

@@ -2,28 +2,22 @@ package com.github.thake.kafka.avro4k.serializer
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.io.AvroFormat
-import com.sksamuel.avro4k.io.AvroOutputStream
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDe
-import io.confluent.kafka.serializers.KafkaAvroSerializerConfig
 import io.confluent.kafka.serializers.NonRecordContainer
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
-import org.apache.avro.generic.GenericDatumWriter
-import org.apache.avro.io.BinaryEncoder
-import org.apache.avro.io.DatumWriter
-import org.apache.avro.io.EncoderFactory
-import org.apache.avro.specific.SpecificDatumWriter
-import org.apache.avro.specific.SpecificRecord
 import org.apache.kafka.common.errors.SerializationException
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
-
+@ImplicitReflectionSerializer
 abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvroSerDe() {
     private var autoRegisterSchema = false
+
+    protected val avroSchemaUtils = Avro4kSchemaUtils()
     protected fun configure(config: KafkaAvro4kSerializerConfig) {
         configureClientProperties(config)
         autoRegisterSchema = config.autoRegisterSchema()
@@ -33,15 +27,14 @@ abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvroSerDe() {
         return KafkaAvro4kSerializerConfig(props)
     }
 
-    @ImplicitReflectionSerializer
     @Throws(SerializationException::class)
     protected fun serializeImpl(subject: String?, obj: Any?): ByteArray? {
         return if (obj == null) {
             null
         } else {
             try {
-                val schema = Avro4kSchemaUtils.getSchema(obj)
-                val id = getSchemaId(subject, schema)
+                val currentSchema = avroSchemaUtils.getSchema(obj)
+                val id = getSchemaId(subject, currentSchema)
                 val out = ByteArrayOutputStream()
                 writeSchemaId(out, id)
                 if (obj is ByteArray) {
@@ -51,6 +44,7 @@ abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvroSerDe() {
                         if (obj is NonRecordContainer) obj.value else obj
                     Avro.default.openOutputStream(value::class.serializer() as KSerializer<Any>) {
                         format = AvroFormat.BinaryFormat
+                        schema = currentSchema
                     }.to(out).write(obj).close()
                 }
                 val bytes = out.toByteArray()
