@@ -7,6 +7,8 @@ import io.confluent.kafka.serializers.AbstractKafkaAvroSerDe
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
+import org.apache.avro.generic.GenericDatumReader
+import org.apache.avro.io.DecoderFactory
 import org.apache.avro.specific.SpecificData
 import org.apache.kafka.common.errors.SerializationException
 import org.reflections.Reflections
@@ -14,6 +16,7 @@ import org.reflections.scanners.SubTypesScanner
 import org.reflections.scanners.TypeAnnotationsScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
+import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 import kotlin.reflect.KClass
@@ -68,7 +71,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
     protected fun getTypeNames(type: Class<*>): List<String> {
         val descriptor = type.kotlin.serializer().descriptor
         val naming = RecordNaming(descriptor)
-        val aliases = AnnotationExtractor(descriptor.getEntityAnnotations()).aliases()
+        val aliases = AnnotationExtractor(descriptor.annotations).aliases()
         val normalNameMapping = "${naming.namespace()}.${naming.name()}"
         return if (aliases.isNotEmpty()) {
             val mappings = mutableListOf(normalNameMapping)
@@ -109,7 +112,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
 
     @Throws(SerializationException::class)
     protected fun deserialize(
-        payload: ByteArray?
+        payload: ByteArray?, readerSchema: Schema?
     ): Any? {
 
         return if (payload == null) {
@@ -119,11 +122,11 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
             try {
                 val buffer = getByteBuffer(payload)
                 id = buffer.int
-                val schema = schemaRegistry.getById(id)
+                val writerSchema = schemaRegistry.getById(id)
                 val length = buffer.limit() - 1 - 4
                 val bytes = ByteArray(length)
                 buffer[bytes, 0, length]
-                return deserialize(schema, bytes)
+                return deserialize(writerSchema, readerSchema, bytes)
             } catch (re: RuntimeException) {
                 throw SerializationException("Error deserializing Avro message for schema id $id with avro4k", re)
             } catch (io: IOException) {
@@ -134,19 +137,26 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
         }
     }
 
-    fun deserialize(schema: Schema, bytes: ByteArray) =
-        when (schema.type) {
+    fun deserialize(writerSchema: Schema, readerSchema: Schema?, bytes: ByteArray) =
+        when (writerSchema.type) {
             Schema.Type.BYTES -> bytes
-            Schema.Type.ARRAY -> {
-
-            }
-            else -> {
-                val deserializedClass = getDeserializedClass(schema)
+            Schema.Type.RECORD -> {
+                val deserializedClass = getDeserializedClass(writerSchema)
                 Avro.default.openInputStream(deserializedClass.serializer()) {
                     format = AvroFormat.BinaryFormat
-                    writerSchema = schema
-                    readerSchema = avroSchemaUtils.getSchema(deserializedClass)
+                    this.writerSchema = writerSchema
+                    this.readerSchema = readerSchema ?: avroSchemaUtils.getSchema(deserializedClass)
                 }.from(bytes).nextOrThrow()
+            }
+            else -> {
+                val decoder = DecoderFactory.get().directBinaryDecoder(ByteArrayInputStream(bytes), null)
+                val datumReader = GenericDatumReader<Any>(writerSchema, readerSchema ?: writerSchema)
+                val deserialized = datumReader.read(null, decoder)
+                if (writerSchema.type == Schema.Type.STRING) {
+                    deserialized.toString()
+                } else {
+                    deserialized
+                }
             }
         }
 

@@ -16,13 +16,14 @@ class TypedKafkaAvro4kDeserializer<T : Any>(private val type: Class<T>, client :
     }
     override fun getDeserializedClass(msgSchema: Schema): KClass<*> {
         return if (typeNames.contains(msgSchema.fullName)) {
-            return Reflection.getOrCreateKotlinClass(type)
+            Reflection.getOrCreateKotlinClass(type)
         } else {
             throw SerializationException("Could not convert to type $type with schema record name ${msgSchema.fullName}")
         }
     }
 
     override fun deserialize(topic: String?, data: ByteArray?): T? {
-        return deserialize(data) as T?
+        @Suppress("UNCHECKED_CAST")
+        return deserialize(data, avroSchemaUtils.getSchema(type)) as T?
     }
 }

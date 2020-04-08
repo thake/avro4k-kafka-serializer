@@ -9,10 +9,13 @@ import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
+import org.apache.avro.generic.GenericDatumWriter
+import org.apache.avro.io.EncoderFactory
 import org.apache.kafka.common.errors.SerializationException
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
+
 @ImplicitReflectionSerializer
 abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvroSerDe() {
     private var autoRegisterSchema = false
@@ -40,12 +43,7 @@ abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvroSerDe() {
                 if (obj is ByteArray) {
                     out.write(obj)
                 } else {
-                    val value =
-                        if (obj is NonRecordContainer) obj.value else obj
-                    Avro.default.openOutputStream(value::class.serializer() as KSerializer<Any>) {
-                        format = AvroFormat.BinaryFormat
-                        schema = currentSchema
-                    }.to(out).write(obj).close()
+                    serializeValue(out, obj, currentSchema!!)
                 }
                 val bytes = out.toByteArray()
                 out.close()
@@ -55,6 +53,23 @@ abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvroSerDe() {
             } catch (io: IOException) {
                 throw SerializationException("Error serializing Avro message with avro4k", io)
             }
+        }
+    }
+
+    fun serializeValue(out: ByteArrayOutputStream, obj: Any, currentSchema: Schema) {
+        val value =
+            if (obj is NonRecordContainer) obj.value else obj
+        if (currentSchema.type == Schema.Type.RECORD) {
+            @Suppress("UNCHECKED_CAST")
+            Avro.default.openOutputStream(value::class.serializer() as KSerializer<Any>) {
+                format = AvroFormat.BinaryFormat
+                schema = currentSchema
+            }.to(out).write(obj).close()
+        } else {
+            val encoder = EncoderFactory.get().directBinaryEncoder(out, null)
+            val datumWriter = GenericDatumWriter<Any>(currentSchema)
+            datumWriter.write(obj, encoder)
+            encoder.flush()
         }
     }
 

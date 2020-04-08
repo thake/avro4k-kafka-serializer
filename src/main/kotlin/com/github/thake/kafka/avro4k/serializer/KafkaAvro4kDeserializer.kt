@@ -2,7 +2,9 @@ package com.github.thake.kafka.avro4k.serializer
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
 import kotlinx.serialization.ImplicitReflectionSerializer
+import org.apache.avro.Schema
 import org.apache.kafka.common.serialization.Deserializer
+
 @ImplicitReflectionSerializer
 class KafkaAvro4kDeserializer(
     client : SchemaRegistryClient? = null,
@@ -22,7 +24,11 @@ class KafkaAvro4kDeserializer(
 
 
     override fun deserialize(s: String, bytes: ByteArray?): Any? {
-        return this.deserialize(bytes)
+        return this.deserialize(s, bytes, null)
+    }
+
+    fun deserialize(@Suppress("UNUSED_PARAMETER") topic: String?, data: ByteArray?, readerSchema: Schema?): Any? {
+        return this.deserialize(data, readerSchema)
     }
 
     override fun close() {}

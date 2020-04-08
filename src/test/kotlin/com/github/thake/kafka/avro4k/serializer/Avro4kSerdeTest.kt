@@ -9,6 +9,8 @@ import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.Serializable
 import org.apache.avro.Schema
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
@@ -53,10 +55,17 @@ class Avro4kSerdeTest {
         fun createSerializableObjects(): Stream<out Any> {
             return Stream.of(
                 TestRecord("STTR"),
-                TestRecordWithNull(null,2),
-                TestRecordWithNull("33",1),
+                TestRecordWithNull(null, 2),
+                TestRecordWithNull("33", 1),
                 TestRecordWithNamespace(4f),
-                TestRecordWithDifferentName(2.0)
+                TestRecordWithDifferentName(2.0),
+                1,
+                2.0,
+                "STR",
+                true,
+                2.0f,
+                1L,
+                byteArrayOf(0xC, 0xA, 0xF, 0xE)
             )
         }
     }
@@ -78,6 +87,14 @@ class Avro4kSerdeTest {
         result ?: throw Exception("")
 
         val deserializedValue = serde.deserializer().deserialize(topic, result)
-        Assertions.assertEquals(toSerialize, deserializedValue)
+        if (toSerialize is ByteArray) {
+            assertTrue(deserializedValue is ByteArray)
+            val desAsArray = deserializedValue as ByteArray
+            toSerialize.forEachIndexed { i, value ->
+                assertEquals(value, desAsArray[i])
+            }
+        } else {
+            assertEquals(toSerialize, deserializedValue)
+        }
     }
 }
