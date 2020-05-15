@@ -1,4 +1,5 @@
 # Kafka avro4k serializer / deserializer
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.thake.avro4k/avro4k-kafka-serializer/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.thake.avro4k/avro4k-kafka-serializer)
 
 This project implements a Kafka serializer / deserializer that integrates with the confluent schema registry and
 leverages [avro4k](https://github.com/sksamuel/avro4k). It is based on confluent's [Kafka Serializer]((https://github.com/confluentinc/schema-registry/tree/master/avro-serializer)).
@@ -51,6 +52,6 @@ spring:
 <dependency>
     <groupId>com.github.thake.avro4k</groupId>
     <artifactId>avro4k-kafka-serializer</artifactId>
-    <version>0.3.0</version>
+    <version>VERSION</version>
 </dependency>
 ```
