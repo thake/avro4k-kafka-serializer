@@ -4,6 +4,9 @@ This project implements a Kafka serializer / deserializer that integrates with t
 leverages [avro4k](https://github.com/sksamuel/avro4k). It is based on confluent's [Kafka Serializer]((https://github.com/confluentinc/schema-registry/tree/master/avro-serializer)).
 As such, this implementations can be used to in several projects (i.e. spring)
 
+This SerDe supports retrying of failed calls to the schema registry (i.e. due to flaky network). Confluents Serde does not implement this yet. 
+See https://github.com/confluentinc/schema-registry/issues/928.
+
 ## Example configuration
 
 ### Spring Cloud Stream with Kafka
@@ -28,6 +31,9 @@ spring:
                         brokers: <your-broker>
                         configuration:
                             schema.registry.url: <your-registry>
+                            schema.registry.retry.attemps: 3
+                            schema.registry.retry.jitter.base: 10
+                            schema.registry.retry.jitter.max: 5000
                             record.packages: <packages-of-avro4k-classes>
                             default.key.serde: com.github.thake.kafka.avro4k.serializer.Avro4kSerde
                             default.value.serde: com.github.thake.kafka.avro4k.serializer.Avro4kSerde
@@ -45,6 +51,6 @@ spring:
 <dependency>
     <groupId>com.github.thake.avro4k</groupId>
     <artifactId>avro4k-kafka-serializer</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```

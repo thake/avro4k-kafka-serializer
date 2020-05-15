@@ -1,13 +1,11 @@
 package com.github.thake.kafka.avro4k.serializer
 
-import com.nhaarman.mockitokotlin2.*
+
 import com.sksamuel.avro4k.AvroName
 import com.sksamuel.avro4k.AvroNamespace
-import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
-import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.Serializable
-import org.apache.avro.Schema
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -16,20 +14,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 
 class Avro4kSerdeTest {
-    val registryMock = mock<SchemaRegistryClient>{
-        var storedSchema : Schema? = null
-        on{ getId(any(), any())} doAnswer {
-            storedSchema = it.getArgument(1)
-            1
-        } doReturn 1
-        on{ register(any(), any())} doAnswer {
-            storedSchema = it.getArgument(1)
-            1
-        }
-        on{getById(eq(1))} doAnswer {
-            storedSchema
-        }
-    }
     @Serializable
     private data class TestRecord(
         val str : String
@@ -76,7 +60,7 @@ class Avro4kSerdeTest {
     fun testRecordSerDeRoundtrip(toSerialize: Any) {
         val config = mapOf(
             KafkaAvro4kDeserializerConfig.RECORD_PACKAGES to this::class.java.packageName,
-            AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to "mock://registry"
+            AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to "mock://registry"
         )
         val serde = Avro4kSerde<Any>()
         val topic = "My-Topic"

@@ -1,37 +1,45 @@
 group = "com.github.thake.avro4k"
 
 plugins {
-    kotlin("jvm") version "1.3.71"
-    kotlin("plugin.serialization") version "1.3.71"
+    val kotlinVersion = "1.3.72"
+    kotlin("jvm") version kotlinVersion
+    kotlin("plugin.serialization") version kotlinVersion
     `java-library`
     idea
     `maven-publish`
     signing
     id("org.jetbrains.dokka") version "0.10.1"
-    id("net.researchgate.release") version "2.6.0"
+    id("net.researchgate.release") version "2.8.1"
+    id("com.github.ben-manes.versions") version "0.28.0"
 }
 
 repositories {
     mavenCentral()
     mavenLocal()
     jcenter()
+    maven("http://packages.confluent.io/maven/")
 }
 
 dependencies{
-    val confluentVersion by extra("5.3.2")
+    val confluentVersion by extra("5.5.0")
     val avroVersion by extra("1.9.2")
-    val junitVersion by extra("5.1.0")
+    val junitVersion by extra("5.6.2")
+    val logbackVersion by extra("1.2.3")
     implementation("org.apache.avro:avro:${avroVersion}")
-    implementation("io.confluent:kafka-avro-serializer:${confluentVersion}")
-    implementation("io.confluent:kafka-streams-avro-serde:5.3.0")
+    implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
+    implementation("io.confluent:kafka-streams-avro-serde:$confluentVersion")
     implementation("com.sksamuel.avro4k:avro4k-core:0.30.0")
     implementation("org.reflections:reflections:0.9.12")
+    implementation("com.michael-bull.kotlin-retry:kotlin-retry:1.0.5")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.6")
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib-jdk8"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+    testImplementation("ch.qos.logback:logback-classic:$logbackVersion")
+    testImplementation("ch.qos.logback:logback-core:$logbackVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
-    testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
+    testImplementation("io.mockk:mockk:1.10.0")
 
 }
 // Configure existing Dokka task to output HTML to typical Javadoc directory

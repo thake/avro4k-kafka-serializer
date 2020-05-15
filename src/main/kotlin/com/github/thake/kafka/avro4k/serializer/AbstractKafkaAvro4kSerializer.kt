@@ -2,8 +2,7 @@ package com.github.thake.kafka.avro4k.serializer
 
 import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.io.AvroFormat
-import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException
-import io.confluent.kafka.serializers.AbstractKafkaAvroSerDe
+
 import io.confluent.kafka.serializers.NonRecordContainer
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.KSerializer
@@ -17,13 +16,13 @@ import java.io.IOException
 import java.nio.ByteBuffer
 
 @ImplicitReflectionSerializer
-abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvroSerDe() {
+abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvro4kSerDe() {
     private var autoRegisterSchema = false
 
     protected val avroSchemaUtils = Avro4kSchemaUtils()
     protected fun configure(config: KafkaAvro4kSerializerConfig) {
-        configureClientProperties(config)
         autoRegisterSchema = config.autoRegisterSchema()
+        super.configure(config)
     }
 
     protected fun serializerConfig(props: Map<String, *>): KafkaAvro4kSerializerConfig {
@@ -83,17 +82,9 @@ abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvroSerDe() {
         schema: Schema?
     ): Int {
         return if (autoRegisterSchema) {
-            try {
-                schemaRegistry.register(subject, schema)
-            }catch (e : RestClientException){
-                throw SerializationException("Error registering Avro schema in schema registry: "+schema,e)
-            }
+            registerWithRetry(subject, schema)
         } else {
-            try {
-                schemaRegistry.getId(subject, schema)
-            }catch(e : RestClientException){
-                throw SerializationException("Error retrieving Avro schema from schema registry: "+schema,e)
-            }
+            getSchemaIdWithRetry(subject, schema)
         }
     }
 }

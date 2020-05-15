@@ -3,7 +3,6 @@ package com.github.thake.kafka.avro4k.serializer
 import com.sksamuel.avro4k.*
 import com.sksamuel.avro4k.io.AvroFormat
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException
-import io.confluent.kafka.serializers.AbstractKafkaAvroSerDe
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
@@ -18,11 +17,10 @@ import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import java.io.ByteArrayInputStream
 import java.io.IOException
-import java.nio.ByteBuffer
 import kotlin.reflect.KClass
 
 @ImplicitReflectionSerializer
-abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
+abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
     private var specificLookupForClassLoader: MutableMap<ClassLoader, Lookup> = mutableMapOf()
     private var recordPackages: List<String>? = null
     protected val avroSchemaUtils = Avro4kSchemaUtils()
@@ -93,7 +91,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
             throw IllegalArgumentException("${KafkaAvro4kDeserializerConfig.RECORD_PACKAGES} is not set correctly.")
         }
         recordPackages = configuredPackages
-        configureClientProperties(config)
+        super.configure(config)
     }
 
     protected fun deserializerConfig(props: Map<String, *>): KafkaAvro4kDeserializerConfig {
@@ -101,14 +99,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
     }
 
 
-    private fun getByteBuffer(payload: ByteArray): ByteBuffer {
-        val buffer = ByteBuffer.wrap(payload)
-        return if (buffer.get().toInt() != 0) {
-            throw SerializationException("Unknown magic byte!")
-        } else {
-            buffer
-        }
-    }
+
 
     @Throws(SerializationException::class)
     protected fun deserialize(
@@ -122,7 +113,8 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvroSerDe() {
             try {
                 val buffer = getByteBuffer(payload)
                 id = buffer.int
-                val writerSchema = schemaRegistry.getById(id)
+                val writerSchema = getSchemaByIdWithRetry(id)
+                    ?: throw SerializationException("Could not find schema with id $id in schema registry")
                 val length = buffer.limit() - 1 - 4
                 val bytes = ByteArray(length)
                 buffer[bytes, 0, length]

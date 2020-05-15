@@ -1,5 +1,6 @@
 package com.github.thake.kafka.avro4k.serializer
 
+import io.confluent.kafka.schemaregistry.avro.AvroSchema
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
 import kotlinx.serialization.ImplicitReflectionSerializer
 import org.apache.kafka.common.serialization.Serializer
@@ -23,7 +24,14 @@ class KafkaAvro4kSerializer(
 
 
     override fun serialize(topic: String, record: Any?): ByteArray? {
-        return this.serializeImpl(this.getSubjectName(topic, isKey, record, avroSchemaUtils.getSchema(record)), record)
+        return this.serializeImpl(
+            this.getSubjectName(
+                topic,
+                isKey,
+                record,
+                AvroSchema(avroSchemaUtils.getSchema(record))
+            ), record
+        )
     }
 
     override fun close() {}
