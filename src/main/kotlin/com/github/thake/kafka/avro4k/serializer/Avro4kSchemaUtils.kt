@@ -4,6 +4,7 @@ import com.sksamuel.avro4k.Avro
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
 
@@ -19,7 +20,7 @@ class Avro4kSchemaUtils {
     private val DOUBLE_SCHEMA = createPrimitiveSchema("double")
     private val STRING_SCHEMA = createPrimitiveSchema("string")
     private val BYTES_SCHEMA = createPrimitiveSchema("bytes")
-    private val cachedSchemas = mutableMapOf<KClass<*>, Schema>()
+    private val cachedSchemas = ConcurrentHashMap<KClass<*>, Schema>()
     private fun createPrimitiveSchema(type: String): Schema {
         return parser.parse(
             """
