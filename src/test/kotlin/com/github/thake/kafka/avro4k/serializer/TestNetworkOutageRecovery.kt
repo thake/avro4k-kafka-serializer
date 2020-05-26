@@ -4,12 +4,14 @@ import io.confluent.kafka.schemaregistry.ParsedSchema
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.Serializable
 import org.apache.kafka.common.errors.SerializationException
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -21,6 +23,11 @@ class TestNetworkOutageRecovery {
     private data class TestRecord(
         val str: String
     )
+
+    @BeforeEach
+    fun resetMocks() {
+        clearAllMocks()
+    }
 
     @Test
     fun testSuccessAfterRetry() {
