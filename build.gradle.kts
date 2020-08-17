@@ -21,8 +21,8 @@ repositories {
 }
 
 dependencies{
-    val confluentVersion by extra("5.5.0")
-    val avroVersion by extra("1.9.2")
+    val confluentVersion by extra("5.5.1")
+    val avroVersion by extra("1.10.0")
     val junitVersion by extra("5.6.2")
     val logbackVersion by extra("1.2.3")
     implementation("org.apache.avro:avro:${avroVersion}")
