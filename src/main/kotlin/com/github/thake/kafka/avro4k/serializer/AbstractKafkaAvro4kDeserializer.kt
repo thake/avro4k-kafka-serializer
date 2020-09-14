@@ -3,7 +3,8 @@ package com.github.thake.kafka.avro4k.serializer
 import com.sksamuel.avro4k.*
 import com.sksamuel.avro4k.io.AvroFormat
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException
-import kotlinx.serialization.ImplicitReflectionSerializer
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericDatumReader
@@ -19,7 +20,6 @@ import java.io.ByteArrayInputStream
 import java.io.IOException
 import kotlin.reflect.KClass
 
-@ImplicitReflectionSerializer
 abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
     private var specificLookupForClassLoader: MutableMap<ClassLoader, Lookup> = mutableMapOf()
     private var recordPackages: List<String>? = null
@@ -65,7 +65,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
 
     //A map of alternative names for types that are annotated with Avro annotations
 
-
+    @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
     protected fun getTypeNames(type: Class<*>): List<String> {
         val descriptor = type.kotlin.serializer().descriptor
         val naming = RecordNaming(descriptor)
@@ -129,6 +129,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
         }
     }
 
+    @OptIn(InternalSerializationApi::class)
     fun deserialize(writerSchema: Schema, readerSchema: Schema?, bytes: ByteArray) =
         when (writerSchema.type) {
             Schema.Type.BYTES -> bytes

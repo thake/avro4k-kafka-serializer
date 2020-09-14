@@ -1,7 +1,7 @@
 group = "com.github.thake.avro4k"
 
 plugins {
-    val kotlinVersion = "1.3.72"
+    val kotlinVersion = "1.4.10"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
     `java-library`
@@ -17,21 +17,21 @@ repositories {
     mavenCentral()
     mavenLocal()
     jcenter()
-    maven("http://packages.confluent.io/maven/")
+    maven("https://packages.confluent.io/maven/")
 }
 
 dependencies{
     val confluentVersion by extra("5.5.1")
     val avroVersion by extra("1.10.0")
-    val junitVersion by extra("5.6.2")
+    val junitVersion by extra("5.7.0")
     val logbackVersion by extra("1.2.3")
     implementation("org.apache.avro:avro:${avroVersion}")
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
     implementation("io.confluent:kafka-streams-avro-serde:$confluentVersion")
-    implementation("com.sksamuel.avro4k:avro4k-core:0.30.0")
+    implementation("com.sksamuel.avro4k:avro4k-core:0.40.0")
     implementation("org.reflections:reflections:0.9.12")
     implementation("com.michael-bull.kotlin-retry:kotlin-retry:1.0.5")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.6")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib-jdk8"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
@@ -59,6 +59,7 @@ val dokkaJar by tasks.creating(Jar::class) {
 tasks {
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
     }
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"

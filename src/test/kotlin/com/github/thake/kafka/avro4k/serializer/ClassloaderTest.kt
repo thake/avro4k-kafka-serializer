@@ -2,7 +2,6 @@ package com.github.thake.kafka.avro4k.serializer
 
 
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
-import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -18,7 +17,6 @@ data class SimpleTest(
     val str: String
 )
 
-@ImplicitReflectionSerializer
 class ClassloaderTest {
     private val config: Map<String, String> = mapOf(
         KafkaAvro4kDeserializerConfig.RECORD_PACKAGES to this::class.java.packageName,

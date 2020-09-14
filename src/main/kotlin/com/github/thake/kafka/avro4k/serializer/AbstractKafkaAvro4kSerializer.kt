@@ -4,7 +4,7 @@ import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.io.AvroFormat
 
 import io.confluent.kafka.serializers.NonRecordContainer
-import kotlinx.serialization.ImplicitReflectionSerializer
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
@@ -15,7 +15,6 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 
-@ImplicitReflectionSerializer
 abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvro4kSerDe() {
     private var autoRegisterSchema = false
 
@@ -55,6 +54,7 @@ abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvro4kSerDe() {
         }
     }
 
+    @OptIn(InternalSerializationApi::class)
     fun serializeValue(out: ByteArrayOutputStream, obj: Any, currentSchema: Schema) {
         val value =
             if (obj is NonRecordContainer) obj.value else obj

@@ -4,7 +4,6 @@ package com.github.thake.kafka.avro4k.serializer
 import com.sksamuel.avro4k.AvroName
 import com.sksamuel.avro4k.AvroNamespace
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
-import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -54,7 +53,6 @@ class Avro4kSerdeTest {
         }
     }
 
-    @ImplicitReflectionSerializer
     @ParameterizedTest()
     @MethodSource("createSerializableObjects")
     fun testRecordSerDeRoundtrip(toSerialize: Any) {

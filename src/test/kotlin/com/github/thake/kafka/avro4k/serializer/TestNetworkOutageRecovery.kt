@@ -8,14 +8,12 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.Serializable
 import org.apache.kafka.common.errors.SerializationException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-@ImplicitReflectionSerializer
 class TestNetworkOutageRecovery {
     private val mockedRegistry = mockk<SchemaRegistryClient>()
 

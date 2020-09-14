@@ -2,9 +2,8 @@ package com.github.thake.kafka.avro4k.serializer
 
 import io.confluent.kafka.schemaregistry.avro.AvroSchema
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
-import kotlinx.serialization.ImplicitReflectionSerializer
 import org.apache.kafka.common.serialization.Serializer
-@ImplicitReflectionSerializer
+
 class KafkaAvro4kSerializer(
     client : SchemaRegistryClient? = null,
     props : Map<String,*>? = null

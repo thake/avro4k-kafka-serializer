@@ -8,7 +8,6 @@ import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import io.mockk.spyk
 import io.mockk.verify
-import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -51,7 +50,6 @@ class KafkaAvro4kSerializerTest {
         }
     }
 
-    @ImplicitReflectionSerializer
     @ParameterizedTest()
     @MethodSource("createSerializableObjects")
     fun testRecordSerDeRoundtrip(toSerialize: Any?) {

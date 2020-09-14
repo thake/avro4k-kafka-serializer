@@ -1,14 +1,14 @@
 package com.github.thake.kafka.avro4k.serializer
 
 import com.sksamuel.avro4k.Avro
-import kotlinx.serialization.ImplicitReflectionSerializer
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
 
-@ImplicitReflectionSerializer
+
 class Avro4kSchemaUtils {
 
     private val parser = Schema.Parser()
@@ -29,7 +29,7 @@ class Avro4kSchemaUtils {
         )
     }
 
-
+    @OptIn(InternalSerializationApi::class)
     fun getSchema(clazz: KClass<*>): Schema? {
         return when {
             Boolean::class.isSuperclassOf(clazz) -> BOOLEAN_SCHEMA
