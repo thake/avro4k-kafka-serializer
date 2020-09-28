@@ -1,90 +1,32 @@
 package com.github.thake.kafka.avro4k.serializer
 
-import com.sksamuel.avro4k.*
+import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.io.AvroFormat
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericDatumReader
 import org.apache.avro.io.DecoderFactory
-import org.apache.avro.specific.SpecificData
 import org.apache.kafka.common.errors.SerializationException
-import org.reflections.Reflections
-import org.reflections.scanners.SubTypesScanner
-import org.reflections.scanners.TypeAnnotationsScanner
-import org.reflections.util.ClasspathHelper
-import org.reflections.util.ConfigurationBuilder
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import kotlin.reflect.KClass
 
 abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
-    private var specificLookupForClassLoader: MutableMap<ClassLoader, Lookup> = mutableMapOf()
-    private var recordPackages: List<String>? = null
+    companion object {
+        private var specificRecordLookupForClassLoader: MutableMap<Pair<List<String>, ClassLoader>, RecordLookup> =
+            mutableMapOf()
+
+        private fun getLookup(recordPackages: List<String>, classLoader: ClassLoader) =
+            specificRecordLookupForClassLoader.getOrPut(Pair(recordPackages, classLoader),
+                { RecordLookup(recordPackages, classLoader) })
+    }
+
+    private var recordPackages: List<String> = emptyList()
     protected val avroSchemaUtils = Avro4kSchemaUtils()
 
-    inner class Lookup(private val classLoader: ClassLoader) {
-        private val specificData = SpecificData(classLoader)
-        private val recordNameToType: Map<String, Class<*>> by lazy {
-            val currentPackages = recordPackages ?: throw IllegalStateException(
-                "Couldn't find record by schema name. " +
-                        "Tried to loookup types with @AvroName, @AvroNamespace and @AvroAliases annotations but either config parameter" +
-                        "'${KafkaAvro4kDeserializerConfig.RECORD_PACKAGES}' has not been set, or config has not been called."
-            )
-            if (currentPackages.isNotEmpty()) {
-                val configBuilder = ConfigurationBuilder().addScanners(TypeAnnotationsScanner(), SubTypesScanner())
-                currentPackages.forEach { configBuilder.addUrls((ClasspathHelper.forPackage(it, classLoader))) }
 
-                val reflection = Reflections(configBuilder)
-                val avroTypes = HashSet<Class<*>>().apply {
-                    this.addAll(reflection.getTypesAnnotatedWith(AvroName::class.java, true))
-                    this.addAll(reflection.getTypesAnnotatedWith(AvroNamespace::class.java, true))
-                    this.addAll(reflection.getTypesAnnotatedWith(AvroAlias::class.java, true))
-                    this.addAll(reflection.getTypesAnnotatedWith(AvroAliases::class.java, true))
-                }
-                avroTypes.flatMap { type ->
-                    getTypeNames(type).map { Pair(it, type) }
-                }.toMap()
-            } else {
-                emptyMap()
-            }
-        }
-
-        fun lookupType(msgSchema: Schema): Class<*>? {
-            //Use the context classloader to not run into https://github.com/spring-projects/spring-boot/issues/14622 when
-            //using Spring boot devtools
-            var objectClass: Class<*>? = specificData.getClass(msgSchema)
-            if (objectClass == null) {
-                objectClass = recordNameToType[msgSchema.fullName]
-            }
-            return objectClass
-        }
-    }
-
-    //A map of alternative names for types that are annotated with Avro annotations
-
-    @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
-    protected fun getTypeNames(type: Class<*>): List<String> {
-        val descriptor = type.kotlin.serializer().descriptor
-        val naming = RecordNaming(descriptor)
-        val aliases = AnnotationExtractor(descriptor.annotations).aliases()
-        val normalNameMapping = "${naming.namespace()}.${naming.name()}"
-        return if (aliases.isNotEmpty()) {
-            val mappings = mutableListOf(normalNameMapping)
-            aliases.forEach {alias ->
-                mappings.add(if (alias.contains('.')) {
-                    alias
-                } else {
-                    "${naming.namespace()}.$alias"
-                })
-            }
-            mappings
-        } else {
-            listOf(normalNameMapping)
-        }
-    }
     protected fun configure(config: KafkaAvro4kDeserializerConfig) {
         val configuredPackages = config.getRecordPackages()
         if (configuredPackages.isEmpty()) {
@@ -97,8 +39,6 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
     protected fun deserializerConfig(props: Map<String, *>): KafkaAvro4kDeserializerConfig {
         return KafkaAvro4kDeserializerConfig(props)
     }
-
-
 
 
     @Throws(SerializationException::class)
@@ -153,6 +93,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
             }
         }
 
+    private fun getLookup(contextClassLoader: ClassLoader) = Companion.getLookup(recordPackages, contextClassLoader)
 
     protected open fun getDeserializedClass(msgSchema: Schema): KClass<*> {
         //First lookup using the context class loader
@@ -169,10 +110,6 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
 
         return objectClass.kotlin
     }
-
-    private fun getLookup(classLoader: ClassLoader) =
-        specificLookupForClassLoader.getOrPut(classLoader,
-            { Lookup(classLoader) })
 
 
 }

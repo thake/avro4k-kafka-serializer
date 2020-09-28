@@ -29,7 +29,7 @@ dependencies{
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
     implementation("io.confluent:kafka-streams-avro-serde:$confluentVersion")
     implementation("com.sksamuel.avro4k:avro4k-core:0.40.0")
-    implementation("org.reflections:reflections:0.9.12")
+    implementation("io.github.classgraph:classgraph:4.8.90")
     implementation("com.michael-bull.kotlin-retry:kotlin-retry:1.0.6")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
     implementation(kotlin("reflect"))

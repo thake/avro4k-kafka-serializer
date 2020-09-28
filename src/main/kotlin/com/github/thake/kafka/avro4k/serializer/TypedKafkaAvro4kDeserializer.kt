@@ -8,7 +8,7 @@ import kotlin.jvm.internal.Reflection
 import kotlin.reflect.KClass
 
 class TypedKafkaAvro4kDeserializer<T : Any>(private val type: Class<T>, client : SchemaRegistryClient? = null) : AbstractKafkaAvro4kDeserializer(), Deserializer<T> {
-    private val typeNames = getTypeNames(type)
+    private val typeNames = type.avroRecordNames
     init {
         this.schemaRegistry = client
     }

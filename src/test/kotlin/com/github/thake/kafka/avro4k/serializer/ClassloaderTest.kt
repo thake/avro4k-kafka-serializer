@@ -5,7 +5,6 @@ import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -26,20 +25,23 @@ class ClassloaderTest {
     private val deserializer = KafkaAvro4kDeserializer(null, config).apply { configure(config, false) }
 
     @Test
-    @Disabled
     fun deserializeWithDifferentClassloader() {
         val byteArray = serializer.serialize("A", SimpleTest("AAA"))
         val newClassLoader = object : ClassLoader() {
 
             override fun loadClass(name: String): Class<*> {
-                return if (name.contains("com.github.thake.kafka.avro4k.serializer.SimpleTest")) findClass(name)
+                return if (name.contains(SimpleTest::class.java.name)) findClass(name)
                 else super.loadClass(name)
             }
 
             @Throws(ClassNotFoundException::class)
             override fun findClass(name: String): Class<*> {
-                val b = loadClassFromFile(name)
-                return defineClass(name, b, 0, b.size, null)
+                return if (name.contains(SimpleTest::class.java.name)) {
+                    val b = loadClassFromFile(name)
+                    defineClass(name, b, 0, b.size, null)
+                } else {
+                    super.findClass(name)
+                }
             }
 
             private fun loadClassFromFile(fileName: String): ByteArray {
