@@ -8,6 +8,12 @@ As such, this implementations can be used to in several projects (i.e. spring)
 This SerDe supports retrying of failed calls to the schema registry (i.e. due to flaky network). Confluents Serde does not implement this yet. 
 See https://github.com/confluentinc/schema-registry/issues/928.
 
+## Confluent Versions
+
+Version 0.10.x is compatible with Apache Kafka 2.5.x / Confluent 5.5.x
+
+Version 0.11.x is compatible with Apache Kafka 2.6.x / Confluent 6.0.0
+
 ## Example configuration
 
 ### Spring Cloud Stream with Kafka
