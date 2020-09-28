@@ -8,9 +8,9 @@ plugins {
     idea
     `maven-publish`
     signing
-    id("org.jetbrains.dokka") version "0.10.1"
+    id("org.jetbrains.dokka") version kotlinVersion
     id("net.researchgate.release") version "2.8.1"
-    id("com.github.ben-manes.versions") version "0.28.0"
+    id("com.github.ben-manes.versions") version "0.33.0"
 }
 
 repositories {
@@ -30,7 +30,7 @@ dependencies{
     implementation("io.confluent:kafka-streams-avro-serde:$confluentVersion")
     implementation("com.sksamuel.avro4k:avro4k-core:0.40.0")
     implementation("org.reflections:reflections:0.9.12")
-    implementation("com.michael-bull.kotlin-retry:kotlin-retry:1.0.5")
+    implementation("com.michael-bull.kotlin-retry:kotlin-retry:1.0.6")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib-jdk8"))
@@ -39,13 +39,12 @@ dependencies{
     testImplementation("ch.qos.logback:logback-core:$logbackVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
-    testImplementation("io.mockk:mockk:1.10.0")
+    testImplementation("io.mockk:mockk:1.10.2")
 
 }
 // Configure existing Dokka task to output HTML to typical Javadoc directory
-tasks.dokka {
-    outputFormat = "html"
-    outputDirectory = "$buildDir/javadoc"
+tasks.dokkaHtml.configure {
+    outputDirectory.set(buildDir.resolve("javadoc"))
 }
 
 // Create dokka Jar task from dokka task output
@@ -54,8 +53,9 @@ val dokkaJar by tasks.creating(Jar::class) {
     description = "Assembles Kotlin docs with Dokka"
     archiveClassifier.set("javadoc")
     // dependsOn(tasks.dokka) not needed; dependency automatically inferred by from(tasks.dokka)
-    from(tasks.dokka)
+    from(tasks.dokkaHtml)
 }
+
 tasks {
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
@@ -76,8 +76,6 @@ tasks {
             isDownloadJavadoc = false
         }
     }
-
-
 }
 
 // Create sources Jar from main kotlin sources
