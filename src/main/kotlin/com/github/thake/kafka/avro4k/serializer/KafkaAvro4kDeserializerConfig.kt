@@ -1,6 +1,7 @@
 package com.github.thake.kafka.avro4k.serializer
 
-import io.confluent.common.config.ConfigDef
+import org.apache.kafka.common.config.ConfigDef
+
 
 class KafkaAvro4kDeserializerConfig(props: Map<String, *>) : AbstractKafkaAvro4kSerDeConfig(
     baseConfigDef().define(

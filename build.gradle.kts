@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies{
-    val confluentVersion by extra("5.5.1")
+    val confluentVersion by extra("6.0.0")
     val avroVersion by extra("1.10.0")
     val junitVersion by extra("5.7.0")
     val logbackVersion by extra("1.2.3")
