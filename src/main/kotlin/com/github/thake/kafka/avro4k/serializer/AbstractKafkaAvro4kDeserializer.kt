@@ -7,10 +7,12 @@ import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericDatumReader
+import org.apache.avro.io.BinaryDecoder
 import org.apache.avro.io.DecoderFactory
 import org.apache.kafka.common.errors.SerializationException
 import java.io.ByteArrayInputStream
 import java.io.IOException
+import java.io.InputStream
 import kotlin.reflect.KClass
 
 abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
@@ -24,6 +26,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
     }
 
     private var recordPackages: List<String> = emptyList()
+    private var binaryDecoder: BinaryDecoder? = null
     protected val avroSchemaUtils = Avro4kSchemaUtils()
 
 
@@ -58,7 +61,9 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
                 val length = buffer.limit() - 1 - 4
                 val bytes = ByteArray(length)
                 buffer[bytes, 0, length]
-                return deserialize(writerSchema, readerSchema, bytes)
+                return ByteArrayInputStream(bytes).use {
+                    deserialize(writerSchema, readerSchema, it)
+                }
             } catch (re: RuntimeException) {
                 throw SerializationException("Error deserializing Avro message for schema id $id with avro4k", re)
             } catch (io: IOException) {
@@ -69,20 +74,24 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
         }
     }
 
-    @OptIn(InternalSerializationApi::class)
-    fun deserialize(writerSchema: Schema, readerSchema: Schema?, bytes: ByteArray) =
+    private fun deserializeUnion(writerSchema: Schema, readerSchema: Schema?, bytes: InputStream): Any? {
+        val decoder = DecoderFactory.get().directBinaryDecoder(bytes, binaryDecoder)
+        val unionTypeIndex = decoder.readInt()
+        val recordSchema = writerSchema.types[unionTypeIndex]
+        if (recordSchema.type == Schema.Type.NULL) return null
+        binaryDecoder = decoder
+        //Decode avro type as record
+        return deserialize(recordSchema, readerSchema, decoder.inputStream())
+    }
+
+
+    private fun deserialize(writerSchema: Schema, readerSchema: Schema?, bytes: InputStream) =
         when (writerSchema.type) {
-            Schema.Type.BYTES -> bytes
-            Schema.Type.RECORD -> {
-                val deserializedClass = getDeserializedClass(writerSchema)
-                Avro.default.openInputStream(deserializedClass.serializer()) {
-                    format = AvroFormat.BinaryFormat
-                    this.writerSchema = writerSchema
-                    this.readerSchema = readerSchema ?: avroSchemaUtils.getSchema(deserializedClass)
-                }.from(bytes).nextOrThrow()
-            }
+            Schema.Type.BYTES -> bytes.readAllBytes()
+            Schema.Type.UNION -> deserializeUnion(writerSchema, readerSchema, bytes)
+            Schema.Type.RECORD -> deserializeRecord(writerSchema, readerSchema, bytes)
             else -> {
-                val decoder = DecoderFactory.get().directBinaryDecoder(ByteArrayInputStream(bytes), null)
+                val decoder = DecoderFactory.get().directBinaryDecoder(bytes, null)
                 val datumReader = GenericDatumReader<Any>(writerSchema, readerSchema ?: writerSchema)
                 val deserialized = datumReader.read(null, decoder)
                 if (writerSchema.type == Schema.Type.STRING) {
@@ -92,6 +101,20 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
                 }
             }
         }
+
+    @OptIn(InternalSerializationApi::class)
+    private fun deserializeRecord(
+        writerSchema: Schema,
+        readerSchema: Schema?,
+        bytes: InputStream
+    ): Any {
+        val deserializedClass = getDeserializedClass(writerSchema)
+        return Avro.default.openInputStream(deserializedClass.serializer()) {
+            format = AvroFormat.BinaryFormat
+            this.writerSchema = writerSchema
+            this.readerSchema = readerSchema ?: avroSchemaUtils.getSchema(deserializedClass)
+        }.from(bytes).nextOrThrow()
+    }
 
     private fun getLookup(contextClassLoader: ClassLoader) = Companion.getLookup(recordPackages, contextClassLoader)
 

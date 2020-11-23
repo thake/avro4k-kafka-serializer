@@ -1,16 +1,21 @@
 package com.github.thake.kafka.avro4k.serializer
 
 
+import com.sksamuel.avro4k.Avro
 import com.sksamuel.avro4k.AvroName
 import com.sksamuel.avro4k.AvroNamespace
 import io.confluent.kafka.schemaregistry.ParsedSchema
+import io.confluent.kafka.schemaregistry.avro.AvroSchema
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
+import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.serialization.Serializable
+import org.apache.avro.Schema
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
@@ -39,15 +44,34 @@ class KafkaAvro4kSerializerTest {
 
     companion object{
         @JvmStatic
-        fun createSerializableObjects():Stream<out Any>{
+        fun createSerializableObjects(): Stream<out Any> {
             return Stream.of(
                 TestRecord("STTR"),
-                TestRecordWithNull(null,2),
-                TestRecordWithNull("33",1),
+                TestRecordWithNull(null, 2),
+                TestRecordWithNull("33", 1),
                 TestRecordWithNamespace(4.0),
                 TestRecordWithDifferentName(2.0)
             )
         }
+    }
+
+    @Test
+    fun testRecordSerializedWithNull() {
+        val serializer = KafkaAvro4kSerializer(registryMock)
+        serializer.configure(
+            mapOf(
+                AbstractKafkaSchemaSerDeConfig.AUTO_REGISTER_SCHEMAS to "true",
+                AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to "mock://registry"
+            ),
+            false
+        )
+        val avroSchema = Avro.Companion.default.schema(TestRecord.serializer())
+        val unionSchema = Schema.createUnion(Schema.create(Schema.Type.NULL), avroSchema)
+        val topic = "My-Topic"
+        val subjectName = "$topic-value"
+        registryMock.register(subjectName, AvroSchema(unionSchema))
+        val result = serializer.serialize(topic, null)
+        result.shouldBe(null)
     }
 
     @ParameterizedTest()

@@ -4,10 +4,10 @@ package com.github.thake.kafka.avro4k.serializer
 import com.sksamuel.avro4k.AvroName
 import com.sksamuel.avro4k.AvroNamespace
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
@@ -70,10 +70,9 @@ class Avro4kSerdeTest {
 
         val deserializedValue = serde.deserializer().deserialize(topic, result)
         if (toSerialize is ByteArray) {
-            assertTrue(deserializedValue is ByteArray)
-            val desAsArray = deserializedValue as ByteArray
+            deserializedValue.shouldBeInstanceOf<ByteArray>()
             toSerialize.forEachIndexed { i, value ->
-                assertEquals(value, desAsArray[i])
+                assertEquals(value, deserializedValue[i])
             }
         } else {
             assertEquals(toSerialize, deserializedValue)
