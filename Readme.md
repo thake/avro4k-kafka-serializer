@@ -2,7 +2,7 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.thake.avro4k/avro4k-kafka-serializer/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.thake.avro4k/avro4k-kafka-serializer)
 
 This project implements a Kafka serializer / deserializer that integrates with the confluent schema registry and
-leverages [avro4k](https://github.com/sksamuel/avro4k). It is based on confluent's [Kafka Serializer]((https://github.com/confluentinc/schema-registry/tree/master/avro-serializer)).
+leverages [avro4k](https://github.com/avro-kotlin/avro4k). It is based on confluent's [Kafka Serializer]((https://github.com/confluentinc/schema-registry/tree/master/avro-serializer)).
 As such, this implementations can be used to in several projects (i.e. spring)
 
 This SerDe supports retrying of failed calls to the schema registry (i.e. due to flaky network). Confluents Serde does not implement this yet. 
@@ -12,7 +12,7 @@ See https://github.com/confluentinc/schema-registry/issues/928.
 
 Version 0.10.x is compatible with Apache Kafka 2.5.x / Confluent 5.5.x
 
-Version 0.11.x is compatible with Apache Kafka 2.6.x / Confluent 6.0.0
+Version 0.11.x+ is compatible with Apache Kafka 2.6.x / Confluent 6.0.0
 
 ## Example configuration
 
