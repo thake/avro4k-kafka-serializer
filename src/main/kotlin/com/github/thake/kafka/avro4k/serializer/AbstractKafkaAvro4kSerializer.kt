@@ -1,8 +1,8 @@
 package com.github.thake.kafka.avro4k.serializer
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.io.AvroFormat
 
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.io.AvroEncodeFormat
 import io.confluent.kafka.serializers.NonRecordContainer
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -41,7 +41,7 @@ abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvro4kSerDe() {
                 if (obj is ByteArray) {
                     out.write(obj)
                 } else {
-                    serializeValue(out, obj, currentSchema!!)
+                    serializeValue(out, obj, currentSchema)
                 }
                 val bytes = out.toByteArray()
                 out.close()
@@ -61,7 +61,7 @@ abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvro4kSerDe() {
         if (currentSchema.type == Schema.Type.RECORD) {
             @Suppress("UNCHECKED_CAST")
             Avro.default.openOutputStream(value::class.serializer() as KSerializer<Any>) {
-                format = AvroFormat.BinaryFormat
+                encodeFormat = AvroEncodeFormat.Binary
                 schema = currentSchema
             }.to(out).write(obj).close()
         } else {

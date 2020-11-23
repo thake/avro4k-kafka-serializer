@@ -1,8 +1,8 @@
 package com.github.thake.kafka.avro4k.serializer
 
 
-import com.sksamuel.avro4k.AvroName
-import com.sksamuel.avro4k.AvroNamespace
+import com.github.avrokotlin.avro4k.AvroName
+import com.github.avrokotlin.avro4k.AvroNamespace
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.serialization.Serializable
