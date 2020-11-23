@@ -21,7 +21,7 @@ class KafkaAvro4kDeserializer(
     }
 
 
-    override fun deserialize(s: String, bytes: ByteArray?): Any? {
+    override fun deserialize(s: String?, bytes: ByteArray?): Any? {
         return this.deserialize(s, bytes, null)
     }
 

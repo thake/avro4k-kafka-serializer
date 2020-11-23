@@ -22,7 +22,7 @@ class KafkaAvro4kSerializer(
     }
 
 
-    override fun serialize(topic: String, record: Any?): ByteArray? {
+    override fun serialize(topic: String?, record: Any?): ByteArray? {
         return record?.let {
             this.serializeImpl(
                 this.getSubjectName(
