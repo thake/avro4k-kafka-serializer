@@ -1,9 +1,10 @@
 package com.github.thake.kafka.avro4k.serializer
 
-import com.sksamuel.avro4k.AvroAlias
-import com.sksamuel.avro4k.AvroAliases
-import com.sksamuel.avro4k.AvroName
-import com.sksamuel.avro4k.AvroNamespace
+
+import com.github.avrokotlin.avro4k.AvroAlias
+import com.github.avrokotlin.avro4k.AvroAliases
+import com.github.avrokotlin.avro4k.AvroName
+import com.github.avrokotlin.avro4k.AvroNamespace
 import io.github.classgraph.ClassGraph
 import org.apache.avro.Schema
 import org.apache.avro.specific.SpecificData

@@ -1,14 +1,14 @@
 group = "com.github.thake.avro4k"
 
 plugins {
-    val kotlinVersion = "1.4.10"
+    val kotlinVersion = "1.4.20"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
     `java-library`
     idea
     `maven-publish`
     signing
-    id("org.jetbrains.dokka") version kotlinVersion
+    id("org.jetbrains.dokka") version "1.4.10"
     id("net.researchgate.release") version "2.8.1"
     id("com.github.ben-manes.versions") version "0.33.0"
 }
@@ -26,10 +26,11 @@ dependencies{
     val junitVersion by extra("5.7.0")
     val logbackVersion by extra("1.2.3")
     val kotestVersion by extra("4.3.1")
+    val avro4kVersion by extra("1.0.0")
     implementation("org.apache.avro:avro:${avroVersion}")
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
     implementation("io.confluent:kafka-streams-avro-serde:$confluentVersion")
-    implementation("com.sksamuel.avro4k:avro4k-core:0.40.0")
+    implementation("com.github.avro-kotlin.avro4k:avro4k-core:$avro4kVersion")
     implementation("io.github.classgraph:classgraph:4.8.90")
     implementation("com.michael-bull.kotlin-retry:kotlin-retry:1.0.6")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")

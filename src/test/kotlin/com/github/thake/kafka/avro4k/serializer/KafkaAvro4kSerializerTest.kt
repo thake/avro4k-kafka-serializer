@@ -1,9 +1,9 @@
 package com.github.thake.kafka.avro4k.serializer
 
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.AvroName
-import com.sksamuel.avro4k.AvroNamespace
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.AvroName
+import com.github.avrokotlin.avro4k.AvroNamespace
 import io.confluent.kafka.schemaregistry.ParsedSchema
 import io.confluent.kafka.schemaregistry.avro.AvroSchema
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient
@@ -65,7 +65,7 @@ class KafkaAvro4kSerializerTest {
             ),
             false
         )
-        val avroSchema = Avro.Companion.default.schema(TestRecord.serializer())
+        val avroSchema = Avro.default.schema(TestRecord.serializer())
         val unionSchema = Schema.createUnion(Schema.create(Schema.Type.NULL), avroSchema)
         val topic = "My-Topic"
         val subjectName = "$topic-value"

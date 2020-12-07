@@ -1,6 +1,6 @@
 package com.github.thake.kafka.avro4k.serializer
 
-import com.sksamuel.avro4k.Avro
+import com.github.avrokotlin.avro4k.Avro
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 import org.apache.avro.Schema
@@ -30,7 +30,7 @@ class Avro4kSchemaUtils {
     }
 
     @OptIn(InternalSerializationApi::class)
-    fun getSchema(clazz: KClass<*>): Schema? {
+    fun getSchema(clazz: KClass<*>): Schema {
         return when {
             Boolean::class.isSuperclassOf(clazz) -> BOOLEAN_SCHEMA
             Int::class.isSuperclassOf(clazz) -> INTEGER_SCHEMA
@@ -44,7 +44,7 @@ class Avro4kSchemaUtils {
     }
 
 
-    fun getSchema(obj: Any?): Schema? {
+    fun getSchema(obj: Any?): Schema {
         return if (obj == null) NULL_SCHEMA else getSchema(obj::class)
     }
 

@@ -1,7 +1,8 @@
 package com.github.thake.kafka.avro4k.serializer
 
-import com.sksamuel.avro4k.Avro
-import com.sksamuel.avro4k.io.AvroFormat
+
+import com.github.avrokotlin.avro4k.Avro
+import com.github.avrokotlin.avro4k.io.AvroDecodeFormat
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
@@ -110,9 +111,10 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
     ): Any {
         val deserializedClass = getDeserializedClass(writerSchema)
         return Avro.default.openInputStream(deserializedClass.serializer()) {
-            format = AvroFormat.BinaryFormat
-            this.writerSchema = writerSchema
-            this.readerSchema = readerSchema ?: avroSchemaUtils.getSchema(deserializedClass)
+            decodeFormat = AvroDecodeFormat.Binary(
+                writerSchema = writerSchema,
+                readerSchema = readerSchema ?: avroSchemaUtils.getSchema(deserializedClass)
+            )
         }.from(bytes).nextOrThrow()
     }
 

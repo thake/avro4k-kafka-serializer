@@ -1,6 +1,7 @@
 package com.github.thake.kafka.avro4k.serializer
 
-import com.sksamuel.avro4k.Avro
+
+import com.github.avrokotlin.avro4k.Avro
 import io.confluent.kafka.schemaregistry.avro.AvroSchema
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
