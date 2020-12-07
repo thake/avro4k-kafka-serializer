@@ -10,9 +10,11 @@ See https://github.com/confluentinc/schema-registry/issues/928.
 
 ## Confluent Versions
 
-Version 0.10.x is compatible with Apache Kafka 2.5.x / Confluent 5.5.x
+Version 0.10.x is compatible with Apache Kafka 2.5.x / Confluent 5.5.x and avro4k < 1.0
 
-Version 0.11.x+ is compatible with Apache Kafka 2.6.x / Confluent 6.0.0
+Version 0.11.x+ is compatible with Apache Kafka 2.6.x / Confluent 6.0.0 and avro4k < 1.0
+
+Version 0.13.x+ is comptaible with Apache Kafka 2.6.x / Confluent 6.0.0 and avro4k 1.0
 
 ## Example configuration
 
