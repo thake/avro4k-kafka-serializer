@@ -1,5 +1,5 @@
 group = "com.github.thake.avro4k"
-
+val javaCompatibility = "1.8"
 plugins {
     val kotlinVersion = "1.5.31"
     kotlin("jvm") version kotlinVersion
@@ -8,7 +8,7 @@ plugins {
     idea
     `maven-publish`
     signing
-    id("org.jetbrains.dokka") version "1.6.0"
+    id("org.jetbrains.dokka") version "1.5.31"
     id("net.researchgate.release") version "2.8.1"
     id("com.github.ben-manes.versions") version "0.39.0"
 }
@@ -24,9 +24,9 @@ dependencies {
     val avroVersion by extra("1.11.0")
     val junitVersion by extra("5.8.2")
     val logbackVersion by extra("1.2.7")
-    val kotestVersion by extra("5.0.1")
+    val kotestVersion by extra("4.6.3")
     val avro4kVersion by extra("1.5.0")
-    api("org.jetbrains.kotlinx:kotlinx-serialization-core:1.3.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.3.1")
     implementation("org.apache.avro:avro:${avroVersion}")
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
     implementation("io.confluent:kafka-streams-avro-serde:$confluentVersion")
@@ -37,7 +37,9 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib-jdk8"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+    @Suppress("GradlePackageUpdate") //Version 5 depends on kotlin 1.6 which isn't supported by kotlinx.serialization
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    @Suppress("GradlePackageUpdate") //Version 5 depends on kotlin 1.6 which isn't supported by kotlinx.serialization
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("ch.qos.logback:logback-classic:$logbackVersion")
     testImplementation("ch.qos.logback:logback-core:$logbackVersion")
@@ -61,12 +63,18 @@ val dokkaJar by tasks.creating(Jar::class) {
 }
 
 tasks {
+    compileJava {
+        targetCompatibility = javaCompatibility
+    }
     compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = javaCompatibility
         kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
     }
+    compileTestJava {
+        targetCompatibility = javaCompatibility
+    }
     compileTestKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = javaCompatibility
     }
     test {
         useJUnitPlatform {
