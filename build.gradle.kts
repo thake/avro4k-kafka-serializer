@@ -1,49 +1,51 @@
 group = "com.github.thake.avro4k"
-
+val javaCompatibility = "1.8"
 plugins {
-    val kotlinVersion = "1.4.20"
+    val kotlinVersion = "1.5.31"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
     `java-library`
     idea
     `maven-publish`
     signing
-    id("org.jetbrains.dokka") version "1.4.10"
+    id("org.jetbrains.dokka") version "1.5.31"
     id("net.researchgate.release") version "2.8.1"
-    id("com.github.ben-manes.versions") version "0.33.0"
+    id("com.github.ben-manes.versions") version "0.39.0"
 }
 
 repositories {
     mavenCentral()
     mavenLocal()
-    jcenter()
     maven("https://packages.confluent.io/maven/")
 }
 
-dependencies{
-    val confluentVersion by extra("6.0.0")
-    val avroVersion by extra("1.10.0")
-    val junitVersion by extra("5.7.0")
-    val logbackVersion by extra("1.2.3")
-    val kotestVersion by extra("4.3.1")
-    val avro4kVersion by extra("1.0.0")
+dependencies {
+    val confluentVersion by extra("7.0.1")
+    val avroVersion by extra("1.11.0")
+    val junitVersion by extra("5.8.2")
+    val logbackVersion by extra("1.2.7")
+    val kotestVersion by extra("4.6.3")
+    val avro4kVersion by extra("1.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.3.1")
     implementation("org.apache.avro:avro:${avroVersion}")
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
     implementation("io.confluent:kafka-streams-avro-serde:$confluentVersion")
     implementation("com.github.avro-kotlin.avro4k:avro4k-core:$avro4kVersion")
-    implementation("io.github.classgraph:classgraph:4.8.90")
-    implementation("com.michael-bull.kotlin-retry:kotlin-retry:1.0.6")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
+    implementation("io.github.classgraph:classgraph:4.8.137")
+    implementation("com.michael-bull.kotlin-retry:kotlin-retry:1.0.9")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib-jdk8"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+    @Suppress("GradlePackageUpdate") //Version 5 depends on kotlin 1.6 which isn't supported by kotlinx.serialization
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    @Suppress("GradlePackageUpdate") //Version 5 depends on kotlin 1.6 which isn't supported by kotlinx.serialization
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("ch.qos.logback:logback-classic:$logbackVersion")
     testImplementation("ch.qos.logback:logback-core:$logbackVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
-    testImplementation("io.mockk:mockk:1.10.2")
+    testImplementation("io.mockk:mockk:1.12.1")
 
 }
 // Configure existing Dokka task to output HTML to typical Javadoc directory
@@ -61,12 +63,18 @@ val dokkaJar by tasks.creating(Jar::class) {
 }
 
 tasks {
+    compileJava {
+        targetCompatibility = javaCompatibility
+    }
     compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = javaCompatibility
         kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
     }
+    compileTestJava {
+        targetCompatibility = javaCompatibility
+    }
     compileTestKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = javaCompatibility
     }
     test {
         useJUnitPlatform {

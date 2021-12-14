@@ -5,10 +5,11 @@ import org.apache.avro.Schema
 import org.apache.kafka.common.serialization.Deserializer
 
 class KafkaAvro4kDeserializer(
-    client : SchemaRegistryClient? = null,
-    props : Map<String,*>? = null
-)  : AbstractKafkaAvro4kDeserializer(), Deserializer<Any> {
+    client: SchemaRegistryClient? = null,
+    props: Map<String, *>? = null
+) : AbstractKafkaAvro4kDeserializer(), Deserializer<Any?> {
     private var isKey = false
+
     init {
         props?.let { configure(this.deserializerConfig(it)) }
         //Set the registry client explicitly after the configuration has been applied to override client from configuration
