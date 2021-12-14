@@ -10,24 +10,16 @@ import kotlin.reflect.full.isSuperclassOf
 
 
 class Avro4kSchemaUtils {
-
-    private val parser = Schema.Parser()
-    private val NULL_SCHEMA = createPrimitiveSchema("null")
-    private val BOOLEAN_SCHEMA = createPrimitiveSchema("boolean")
-    private val INTEGER_SCHEMA = createPrimitiveSchema("int")
-    private val LONG_SCHEMA = createPrimitiveSchema("long")
-    private val FLOAT_SCHEMA = createPrimitiveSchema("float")
-    private val DOUBLE_SCHEMA = createPrimitiveSchema("double")
-    private val STRING_SCHEMA = createPrimitiveSchema("string")
-    private val BYTES_SCHEMA = createPrimitiveSchema("bytes")
+    private val NULL_SCHEMA = Schema.create(Schema.Type.NULL)
+    private val BOOLEAN_SCHEMA = Schema.create(Schema.Type.BOOLEAN)
+    private val INTEGER_SCHEMA = Schema.create(Schema.Type.INT)
+    private val LONG_SCHEMA = Schema.create(Schema.Type.LONG)
+    private val FLOAT_SCHEMA = Schema.create(Schema.Type.FLOAT)
+    private val DOUBLE_SCHEMA = Schema.create(Schema.Type.DOUBLE)
+    private val STRING_SCHEMA = Schema.create(Schema.Type.STRING)
+    private val BYTES_SCHEMA = Schema.create(Schema.Type.BYTES)
     private val cachedSchemas = ConcurrentHashMap<KClass<*>, Schema>()
-    private fun createPrimitiveSchema(type: String): Schema {
-        return parser.parse(
-            """
-            {"type" : "$type"}
-            """.trim()
-        )
-    }
+
 
     @OptIn(InternalSerializationApi::class)
     fun getSchema(clazz: KClass<*>): Schema {

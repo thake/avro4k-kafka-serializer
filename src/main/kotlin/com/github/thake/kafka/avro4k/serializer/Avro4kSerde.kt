@@ -6,9 +6,9 @@ import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.common.serialization.Serializer
 
-class Avro4kSerde<T : Any>(client: SchemaRegistryClient? = null) : Serde<T> {
+class Avro4kSerde<T : Any?>(client: SchemaRegistryClient? = null) : Serde<T> {
     @Suppress("UNCHECKED_CAST")
-    private val inner: Serde<T>  = Serdes.serdeFrom<T>(
+    private val inner: Serde<T> = Serdes.serdeFrom(
         KafkaAvro4kSerializer(client) as Serializer<T>,
         KafkaAvro4kDeserializer(client) as Deserializer<T>
     )
