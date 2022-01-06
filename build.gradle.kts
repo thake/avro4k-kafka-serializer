@@ -1,16 +1,16 @@
 group = "com.github.thake.avro4k"
 val javaCompatibility = "1.8"
+
 plugins {
-    val kotlinVersion = "1.5.31"
-    kotlin("jvm") version kotlinVersion
-    kotlin("plugin.serialization") version kotlinVersion
     `java-library`
     idea
     `maven-publish`
     signing
-    id("org.jetbrains.dokka") version "1.5.31"
-    id("net.researchgate.release") version "2.8.1"
-    id("com.github.ben-manes.versions") version "0.39.0"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.versions)
+    alias(libs.plugins.release)
 }
 
 repositories {
@@ -20,32 +20,19 @@ repositories {
 }
 
 dependencies {
-    val confluentVersion by extra("7.0.1")
-    val avroVersion by extra("1.11.0")
-    val junitVersion by extra("5.8.2")
-    val logbackVersion by extra("1.2.7")
-    val kotestVersion by extra("4.6.3")
-    val avro4kVersion by extra("1.5.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.3.1")
-    implementation("org.apache.avro:avro:${avroVersion}")
-    implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
-    implementation("io.confluent:kafka-streams-avro-serde:$confluentVersion")
-    implementation("com.github.avro-kotlin.avro4k:avro4k-core:$avro4kVersion")
-    implementation("io.github.classgraph:classgraph:4.8.137")
-    implementation("com.michael-bull.kotlin-retry:kotlin-retry:1.0.9")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
-    implementation(kotlin("reflect"))
-    implementation(kotlin("stdlib-jdk8"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
-    @Suppress("GradlePackageUpdate") //Version 5 depends on kotlin 1.6 which isn't supported by kotlinx.serialization
-    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
-    @Suppress("GradlePackageUpdate") //Version 5 depends on kotlin 1.6 which isn't supported by kotlinx.serialization
-    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
-    testImplementation("ch.qos.logback:logback-classic:$logbackVersion")
-    testImplementation("ch.qos.logback:logback-core:$logbackVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
-    testImplementation("io.mockk:mockk:1.12.1")
+    implementation(libs.kotlin.reflect)
+    implementation(libs.kotlin.stdlibJdk8)
+    implementation(libs.kotlinx.serialization)
+    implementation(libs.kotlinx.coroutines)
+    implementation(libs.avro)
+    implementation(libs.kafka.avro.serializer)
+    implementation(libs.kafka.avro.serde)
+    implementation(libs.avro4k)
+    implementation(libs.classgraph)
+    implementation(libs.retry)
+    testImplementation(libs.bundles.logging)
+    testImplementation(libs.bundles.test)
+    testRuntimeOnly(libs.junit.runtime)
 
 }
 // Configure existing Dokka task to output HTML to typical Javadoc directory
