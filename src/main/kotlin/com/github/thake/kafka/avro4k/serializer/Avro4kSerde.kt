@@ -1,16 +1,17 @@
 package com.github.thake.kafka.avro4k.serializer
 
+import com.github.avrokotlin.avro4k.Avro
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
 import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.common.serialization.Serializer
 
-class Avro4kSerde<T : Any?>(client: SchemaRegistryClient? = null) : Serde<T> {
+class Avro4kSerde<T : Any?>(client: SchemaRegistryClient? = null, avro: Avro = Avro.default) : Serde<T> {
     @Suppress("UNCHECKED_CAST")
     private val inner: Serde<T> = Serdes.serdeFrom(
-        KafkaAvro4kSerializer(client) as Serializer<T>,
-        KafkaAvro4kDeserializer(client) as Deserializer<T>
+        KafkaAvro4kSerializer(client, avro = avro) as Serializer<T>,
+        KafkaAvro4kDeserializer(client, avro = avro) as Deserializer<T>
     )
 
 
