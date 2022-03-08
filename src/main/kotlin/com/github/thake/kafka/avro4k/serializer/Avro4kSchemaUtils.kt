@@ -9,7 +9,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
 
 
-class Avro4kSchemaUtils {
+class Avro4kSchemaUtils(private val avro: Avro) {
     private val NULL_SCHEMA = Schema.create(Schema.Type.NULL)
     private val BOOLEAN_SCHEMA = Schema.create(Schema.Type.BOOLEAN)
     private val INTEGER_SCHEMA = Schema.create(Schema.Type.INT)
@@ -31,7 +31,7 @@ class Avro4kSchemaUtils {
             Double::class.isSuperclassOf(clazz) -> DOUBLE_SCHEMA
             CharSequence::class.isSuperclassOf(clazz) -> STRING_SCHEMA
             ByteArray::class.isSuperclassOf(clazz) -> BYTES_SCHEMA
-            else -> cachedSchemas.computeIfAbsent(clazz) { Avro.default.schema(it.serializer()) }
+            else -> cachedSchemas.computeIfAbsent(clazz) { avro.schema(it.serializer()) }
         }
     }
 

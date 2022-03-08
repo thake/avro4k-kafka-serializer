@@ -1,13 +1,15 @@
 package com.github.thake.kafka.avro4k.serializer
 
+import com.github.avrokotlin.avro4k.Avro
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
 import org.apache.avro.Schema
 import org.apache.kafka.common.serialization.Deserializer
 
 class KafkaAvro4kDeserializer(
     client: SchemaRegistryClient? = null,
-    props: Map<String, *>? = null
-) : AbstractKafkaAvro4kDeserializer(), Deserializer<Any?> {
+    props: Map<String, *>? = null,
+    avro: Avro = Avro.default
+) : AbstractKafkaAvro4kDeserializer(avro), Deserializer<Any?> {
     private var isKey = false
 
     init {

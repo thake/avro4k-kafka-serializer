@@ -1,13 +1,15 @@
 package com.github.thake.kafka.avro4k.serializer
 
+import com.github.avrokotlin.avro4k.Avro
 import io.confluent.kafka.schemaregistry.avro.AvroSchema
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
 import org.apache.kafka.common.serialization.Serializer
 
 class KafkaAvro4kSerializer(
     client : SchemaRegistryClient? = null,
-    props : Map<String,*>? = null
-) : AbstractKafkaAvro4kSerializer(), Serializer<Any?> {
+    props : Map<String,*>? = null,
+    avro: Avro = Avro.default
+) : AbstractKafkaAvro4kSerializer(avro), Serializer<Any?> {
     private var isKey = false
 
     init {
