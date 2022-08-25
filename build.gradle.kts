@@ -30,6 +30,9 @@ dependencies {
     implementation(libs.avro4k)
     implementation(libs.classgraph)
     implementation(libs.retry)
+    testImplementation(libs.testcontainers)
+    testImplementation(libs.testcontainers.kafka)
+    testImplementation(libs.kafka.streams)
     testImplementation(libs.bundles.logging)
     testImplementation(libs.bundles.test)
     testRuntimeOnly(libs.junit.runtime)
@@ -66,7 +69,9 @@ tasks {
     test {
         useJUnitPlatform {
             includeEngines("junit-jupiter")
+            jvmArgs("-DconfluentVersion=${libs.versions.confluent}")
         }
+
     }
 
     idea {
