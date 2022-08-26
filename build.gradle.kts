@@ -136,7 +136,7 @@ publishing{
             pom{
                 name.set("Kafka serializer using avro4k")
                 description.set("Provides Kafka SerDes and Serializer / Deserializer implementations for avro4k")
-                url.set("https://github.com/thake/kafka-avro4k-serializer")
+                url.set("https://github.com/thake/avro4k-kafka-serializer")
                 developers {
                     developer {
                         name.set("Thorsten Hake")
@@ -144,9 +144,9 @@ publishing{
                     }
                 }
                 scm {
-                    connection.set("https://github.com/thake/kafka-avro4k-serializer.git")
-                    developerConnection.set("scm:git:ssh://github.com:thake/kafka-avro4k-serializer.git")
-                    url.set("https://github.com/thake/kafka-avro4k-serializer")
+                    connection.set("https://github.com/thake/avro4k-kafka-serializer.git")
+                    developerConnection.set("scm:git:ssh://github.com:thake/avro4k-kafka-serializer.git")
+                    url.set("https://github.com/thake/avro4k-kafka-serializer")
                 }
                 licenses {
                     license {
