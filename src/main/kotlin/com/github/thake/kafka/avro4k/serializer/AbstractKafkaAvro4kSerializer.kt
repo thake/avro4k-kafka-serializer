@@ -15,10 +15,10 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 
-abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvro4kSerDe() {
+abstract class AbstractKafkaAvro4kSerializer(private val avro: Avro) : AbstractKafkaAvro4kSerDe() {
     private var autoRegisterSchema = false
 
-    protected val avroSchemaUtils = Avro4kSchemaUtils()
+    protected val avroSchemaUtils = Avro4kSchemaUtils(avro)
     protected fun configure(config: KafkaAvro4kSerializerConfig) {
         autoRegisterSchema = config.autoRegisterSchema()
         super.configure(config)
@@ -60,7 +60,7 @@ abstract class AbstractKafkaAvro4kSerializer : AbstractKafkaAvro4kSerDe() {
             if (obj is NonRecordContainer) obj.value else obj
         if (currentSchema.type == Schema.Type.RECORD) {
             @Suppress("UNCHECKED_CAST")
-            Avro.default.openOutputStream(value::class.serializer() as KSerializer<Any>) {
+            avro.openOutputStream(value::class.serializer() as KSerializer<Any>) {
                 encodeFormat = AvroEncodeFormat.Binary
                 schema = currentSchema
             }.to(out).write(obj).close()

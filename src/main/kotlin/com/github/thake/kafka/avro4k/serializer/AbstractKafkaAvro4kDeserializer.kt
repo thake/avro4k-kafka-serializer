@@ -16,7 +16,7 @@ import java.io.IOException
 import java.io.InputStream
 import kotlin.reflect.KClass
 
-abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
+abstract class AbstractKafkaAvro4kDeserializer(private val avro: Avro) : AbstractKafkaAvro4kSerDe() {
     companion object {
         private var specificRecordLookupForClassLoader: MutableMap<Pair<List<String>, ClassLoader>, RecordLookup> =
             mutableMapOf()
@@ -28,7 +28,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
 
     private var recordPackages: List<String> = emptyList()
     private var binaryDecoder: BinaryDecoder? = null
-    protected val avroSchemaUtils = Avro4kSchemaUtils()
+    protected val avroSchemaUtils = Avro4kSchemaUtils(avro)
 
 
     protected fun configure(config: KafkaAvro4kDeserializerConfig) {
@@ -110,7 +110,7 @@ abstract class AbstractKafkaAvro4kDeserializer : AbstractKafkaAvro4kSerDe() {
         bytes: InputStream
     ): Any {
         val deserializedClass = getDeserializedClass(writerSchema)
-        return Avro.default.openInputStream(deserializedClass.serializer()) {
+        return avro.openInputStream(deserializedClass.serializer()) {
             decodeFormat = AvroDecodeFormat.Binary(
                 writerSchema = writerSchema,
                 readerSchema = readerSchema ?: avroSchemaUtils.getSchema(deserializedClass)

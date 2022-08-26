@@ -1,5 +1,6 @@
 package com.github.thake.kafka.avro4k.serializer
 
+import com.github.avrokotlin.avro4k.Avro
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
 import org.apache.avro.Schema
 import org.apache.kafka.common.errors.SerializationException
@@ -7,7 +8,10 @@ import org.apache.kafka.common.serialization.Deserializer
 import kotlin.jvm.internal.Reflection
 import kotlin.reflect.KClass
 
-class TypedKafkaAvro4kDeserializer<T : Any>(private val type: Class<T>, client : SchemaRegistryClient? = null) : AbstractKafkaAvro4kDeserializer(), Deserializer<T> {
+class TypedKafkaAvro4kDeserializer<T : Any>(
+    private val type: Class<T>, client : SchemaRegistryClient? = null,
+    avro: Avro = Avro.default
+) : AbstractKafkaAvro4kDeserializer(avro), Deserializer<T> {
     private val typeNames = type.avroRecordNames
     init {
         this.schemaRegistry = client
