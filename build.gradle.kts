@@ -146,7 +146,7 @@ publishing{
                 scm {
                     connection.set("https://github.com/thake/kafka-avro4k-serializer.git")
                     developerConnection.set("scm:git:ssh://github.com:thake/kafka-avro4k-serializer.git")
-                    url.set("https://github.com/tbroyer/gradle-incap-helper")
+                    url.set("https://github.com/thake/kafka-avro4k-serializer")
                 }
                 licenses {
                     license {
