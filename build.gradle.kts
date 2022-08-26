@@ -1,8 +1,11 @@
+@file:Suppress("UnstableApiUsage")
+
 group = "com.github.thake.avro4k"
 val javaCompatibility = "1.8"
 
 plugins {
     `java-library`
+    `jvm-test-suite`
     idea
     `maven-publish`
     signing
@@ -20,20 +23,16 @@ repositories {
 }
 
 dependencies {
+    api(libs.kafka.avro.serde)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.stdlibJdk8)
     implementation(libs.kotlinx.serialization)
     implementation(libs.kotlinx.coroutines)
     implementation(libs.avro)
     implementation(libs.kafka.avro.serializer)
-    implementation(libs.kafka.avro.serde)
     implementation(libs.avro4k)
     implementation(libs.classgraph)
     implementation(libs.retry)
-    testImplementation(libs.testcontainers)
-    testImplementation(libs.testcontainers.kafka)
-    testImplementation(libs.kafka.streams)
-    testImplementation(libs.bundles.logging)
     testImplementation(libs.bundles.test)
     testRuntimeOnly(libs.junit.runtime)
 
@@ -52,13 +51,41 @@ val dokkaJar by tasks.creating(Jar::class) {
     from(tasks.dokkaHtml)
 }
 
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter()
+        }
+        val integrationTest by registering(JvmTestSuite::class) {
+
+            dependencies {
+                implementation(project)
+                implementation(libs.testcontainers)
+                implementation(libs.testcontainers.kafka)
+                implementation(libs.kafka.streams)
+                implementation(libs.kotlinx.serialization)
+                implementation(libs.bundles.test)
+                implementation(libs.bundles.logging)
+            }
+
+            targets {
+                all {
+                    testTask.configure {
+                        shouldRunAfter(test)
+                    }
+                }
+            }
+        }
+    }
+}
+
 tasks {
     compileJava {
         targetCompatibility = javaCompatibility
     }
     compileKotlin {
         kotlinOptions.jvmTarget = javaCompatibility
-        kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+        kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
     }
     compileTestJava {
         targetCompatibility = javaCompatibility
@@ -66,12 +93,8 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = javaCompatibility
     }
-    test {
-        useJUnitPlatform {
-            includeEngines("junit-jupiter")
-            jvmArgs("-DconfluentVersion=${libs.versions.confluent}")
-        }
-
+    beforeReleaseBuild {
+        dependsOn(testing.suites.named("integrationTest"))
     }
 
     idea {
