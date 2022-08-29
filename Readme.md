@@ -85,7 +85,7 @@ spring:
 - `record.packages`  
   The packages in which record types annotated with `@AvroName`,
   `@AvroAlias` and `@AvroNamespace` can be found. Packages are separated
-  by a colon `,`. Only needed for deserialization.
+  by a comma `,`. Only needed for deserialization.
 
   - Type: string
   - Default: null

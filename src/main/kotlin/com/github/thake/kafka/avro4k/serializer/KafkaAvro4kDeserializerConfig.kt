@@ -13,7 +13,7 @@ class KafkaAvro4kDeserializerConfig(props: Map<String, *>) : AbstractKafkaAvro4k
             ConfigDef.Type.STRING,
             null,
             ConfigDef.Importance.HIGH,
-            "The packages in which record types annotated with @AvroName, @AvroAlias and @AvroNamespace can be found. Packages are separated by a colon ','."
+            "The packages in which record types annotated with @AvroName, @AvroAlias and @AvroNamespace can be found. Packages are separated by a comma ','."
         )
     }
 }
